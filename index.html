@@ -216,18 +216,24 @@
                     <div class="bg-gray-50 rounded-xl p-4 mb-6">
                         <p class="text-sm font-medium text-gray-600 mb-3 text-center">패들 미리보기</p>
                         <div class="flex justify-center">
-                            <div class="relative w-20 sm:w-24">
-                                <!-- Paddle Shape -->
-                                <div class="bg-gray-300 rounded-t-full w-full h-32 sm:h-40 relative border-2 border-gray-400">
-                                    <!-- Lead Tape Indicator -->
-                                    <div id="tape-indicator" class="absolute left-1 right-1 h-2 bg-red-500 rounded transition-all duration-300" style="top: 10%"></div>
-                                    <!-- Top Label -->
-                                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">상단</div>
+                            <div class="relative" style="width: 100px;">
+                                <!-- Paddle Image Container -->
+                                <div class="relative" style="height: 220px;">
+                                    <img src="paddle.png" alt="피클볼 패들" class="w-full h-full object-contain">
+                                    <!-- Left Lead Tape -->
+                                    <div id="tape-left" class="absolute transition-all duration-300" style="left: -2px; top: 8%;">
+                                        <div id="tape-left-inner" class="bg-gradient-to-b from-red-600 to-red-500 rounded-sm" style="width: 6px; height: 18px; transform: rotate(-25deg); box-shadow: 0 1px 2px rgba(0,0,0,0.3);"></div>
+                                    </div>
+                                    <!-- Right Lead Tape -->
+                                    <div id="tape-right" class="absolute transition-all duration-300" style="right: -2px; top: 8%;">
+                                        <div id="tape-right-inner" class="bg-gradient-to-b from-red-600 to-red-500 rounded-sm" style="width: 6px; height: 18px; transform: rotate(25deg); box-shadow: 0 1px 2px rgba(0,0,0,0.3);"></div>
+                                    </div>
                                 </div>
-                                <!-- Handle -->
-                                <div class="bg-gray-400 w-8 sm:w-10 h-12 sm:h-14 mx-auto rounded-b-lg border-2 border-t-0 border-gray-500"></div>
-                                <!-- Bottom Label -->
-                                <div class="text-xs text-gray-500 text-center mt-1">버트캡</div>
+                                <!-- Labels -->
+                                <div class="flex justify-between text-xs text-gray-500 mt-2 px-1">
+                                    <span>상단</span>
+                                    <span>버트캡</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -611,13 +617,38 @@
             updateTapeIndicator(tapePosition, origLengthCm);
         }
 
-        // 패들 미리보기에서 납테이프 위치 업데이트
+        // 패들 미리보기에서 납테이프 위치 업데이트 (림 곡선에 맞춤)
         function updateTapeIndicator(tapePosition, lengthCm) {
-            const indicator = document.getElementById('tape-indicator');
-            // 패들 헤드 영역 (전체의 약 75%)에서의 위치 계산
-            const headHeight = 75; // 퍼센트
-            const positionPercent = (tapePosition / lengthCm) * headHeight;
-            indicator.style.top = Math.min(positionPercent, 70) + '%';
+            const tapeLeft = document.getElementById('tape-left');
+            const tapeRight = document.getElementById('tape-right');
+            const tapeLeftInner = document.getElementById('tape-left-inner');
+            const tapeRightInner = document.getElementById('tape-right-inner');
+
+            // 각도 계산 (왼쪽 기준)
+            // 0~5cm: 45도, 5~20cm: 0도, 20~28cm: -45도
+            let leftAngle;
+            if (tapePosition <= 5) {
+                leftAngle = 45;
+            } else if (tapePosition <= 20) {
+                leftAngle = 0;
+            } else {
+                leftAngle = -45;
+            }
+            // 오른쪽은 왼쪽과 수직 대칭
+            const rightAngle = -leftAngle;
+
+            // 세로 위치 계산
+            // 부착 위치는 상단에서부터 측정 (0~28cm가 헤드 영역)
+            // 이미지에서 헤드 영역은 약 0~70%
+            const headLengthCm = 28; // 헤드 영역 길이 (cm)
+            const headImagePercent = 70; // 이미지에서 헤드가 차지하는 비율 (%)
+            const topPercent = Math.min(Math.max((tapePosition / headLengthCm) * headImagePercent, 2), 68);
+
+            // 위치 및 각도 적용
+            tapeLeft.style.top = topPercent + '%';
+            tapeRight.style.top = topPercent + '%';
+            tapeLeftInner.style.transform = 'rotate(' + leftAngle + 'deg)';
+            tapeRightInner.style.transform = 'rotate(' + rightAngle + 'deg)';
         }
 
         // 납테이프 위치 입력 시 미리보기 업데이트
