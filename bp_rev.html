@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>밸런스 포인트 역계산기 - 피클볼 패들</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-10">
+
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Header Section -->
+        <div class="flex flex-col lg:flex-row justify-between items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-800 mb-2 sm:mb-3">밸런스 포인트 역계산기</h1>
+                <p class="text-gray-600 text-sm sm:text-base lg:text-lg">
+                    피클볼 패들의 밸런스 포인트를
+                    <span class="text-purple-600 font-semibold">정적 무게</span>,
+                    <span class="text-purple-600 font-semibold">길이</span>,
+                    <span class="text-purple-600 font-semibold">스윙 웨이트</span>로
+                    역으로 계산하는 도구입니다.
+                </p>
+            </div>
+
+            <!-- Quick Reference Box -->
+            <div class="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 sm:p-5 w-full lg:w-auto lg:min-w-[280px]">
+                <div class="flex gap-6 sm:gap-8">
+                    <div>
+                        <h3 class="text-purple-600 font-bold text-xs sm:text-sm mb-2">입력값</h3>
+                        <ul class="text-gray-700 text-xs sm:text-sm space-y-1">
+                            <li>무게 <span class="text-gray-400">(oz/g)</span></li>
+                            <li>길이 <span class="text-gray-400">(in/cm)</span></li>
+                            <li>스윙 웨이트 <span class="text-gray-400">(kg·cm²)</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-purple-600 font-bold text-xs sm:text-sm mb-2">출력값</h3>
+                        <p class="text-gray-700 text-xs sm:text-sm font-semibold">예상 밸런스 포인트</p>
+                        <p class="text-gray-500 text-xs sm:text-sm">cm 단위</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Main Link -->
+        <div class="mb-6">
+            <a href="index.html" class="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 font-medium text-sm sm:text-base transition-colors">
+                <span>←</span>
+                <span>스윙 웨이트 계산기로 돌아가기</span>
+            </a>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid lg:grid-cols-2 gap-6 sm:gap-8">
+
+            <!-- Left: Reverse Calculator Input -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-8">
+                <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">패들 스펙 입력</h3>
+
+                <!-- Input: Static Weight -->
+                <div class="mb-5 sm:mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">정적 무게</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="rev-weight" step="0.01" value="8.1"
+                            class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-base sm:text-lg">
+                        <select id="rev-weight-unit" onchange="convertRevWeight()" class="p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none text-sm sm:text-base min-w-[70px]">
+                            <option value="oz">oz</option>
+                            <option value="g">g</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Input: Length -->
+                <div class="mb-5 sm:mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">패들 길이</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="rev-length" step="0.01" value="16.5"
+                            class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-base sm:text-lg">
+                        <select id="rev-length-unit" onchange="convertRevLength()" class="p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 outline-none text-sm sm:text-base min-w-[70px]">
+                            <option value="in">in</option>
+                            <option value="cm">cm</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Input: Swing Weight -->
+                <div class="mb-6 sm:mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">스윙 웨이트 (kg·cm²)</label>
+                    <input type="number" id="rev-sw" step="0.1" value="115"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-base sm:text-lg">
+                    <p class="text-gray-500 text-xs sm:text-sm mt-2">
+                        ℹ️ 제조사 스펙 또는 측정된 스윙 웨이트 값
+                    </p>
+                </div>
+
+                <!-- Calculate Button -->
+                <button onclick="calculateReverseBalance()"
+                    class="w-full bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white font-bold py-3 sm:py-4 rounded-xl transition-colors shadow-md text-base sm:text-lg">
+                    🔄 밸런스 포인트 계산
+                </button>
+            </div>
+
+            <!-- Right: Result -->
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-8">
+                <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">📍 계산 결과</h3>
+
+                <!-- Result Display -->
+                <div id="rev-result" class="hidden">
+                    <div class="bg-purple-100 border border-purple-300 rounded-xl p-4 sm:p-5 mb-6">
+                        <p class="text-gray-600 text-sm mb-2">예상 밸런스 포인트</p>
+                        <div class="flex items-baseline gap-2 mb-4">
+                            <span id="rev-balance-value" class="text-4xl sm:text-5xl font-black text-gray-900">0</span>
+                            <span class="text-gray-600 text-lg">cm</span>
+                        </div>
+                        <p class="text-gray-500 text-sm">버트캡 끝에서부터의 거리</p>
+                    </div>
+
+                    <!-- Balance Point Visual -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="text-sm font-medium text-gray-600 mb-3 text-center">밸런스 포인트 위치</p>
+                        <div class="relative h-8 bg-gray-200 rounded-full overflow-hidden mb-2">
+                            <div id="rev-balance-bar" class="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-purple-400 to-purple-600 transition-all duration-500" style="width: 50%"></div>
+                            <div id="rev-balance-marker" class="absolute top-0 bottom-0 w-1 bg-gray-800 transition-all duration-500" style="left: 50%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>버트캡 (0cm)</span>
+                            <span id="rev-length-label">헤드 (42cm)</span>
+                        </div>
+                    </div>
+
+                    <!-- Input Summary -->
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <p class="text-sm font-medium text-gray-600 mb-3">입력값 요약</p>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-xs text-gray-500">무게</p>
+                                <p id="rev-summary-weight" class="text-sm font-semibold text-gray-800">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">길이</p>
+                                <p id="rev-summary-length" class="text-sm font-semibold text-gray-800">-</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">스윙웨이트</p>
+                                <p id="rev-summary-sw" class="text-sm font-semibold text-gray-800">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="rev-empty" class="text-center py-12 text-gray-400">
+                    <p class="text-4xl mb-3">📍</p>
+                    <p class="text-sm">값을 입력하고<br>"밸런스 포인트 계산" 버튼을 눌러주세요</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- How it Works Section -->
+        <div class="mt-8 sm:mt-12">
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">역계산 원리</h2>
+
+                <p class="text-gray-600 leading-relaxed mb-3 sm:mb-4 text-sm sm:text-base">
+                    이 계산기는 스윙 웨이트 공식을 역으로 풀어 밸런스 포인트를 계산합니다.
+                    무게, 길이, 스윙 웨이트를 알고 있을 때 밸런스 포인트를 추정할 수 있습니다.
+                </p>
+
+                <p class="text-gray-600 leading-relaxed mb-4 sm:mb-6 text-sm sm:text-base">
+                    편의를 위해 무게는 <strong>oz</strong> 또는 <strong>g</strong>, 길이는 <strong>in</strong> 또는 <strong>cm</strong> 단위로 입력할 수 있으며, 내부적으로 변환됩니다.
+                </p>
+
+                <ul class="space-y-2 sm:space-y-3">
+                    <li class="flex items-start gap-2">
+                        <span class="text-gray-400">•</span>
+                        <span class="text-gray-700 text-sm sm:text-base"><strong>높은 밸런스 포인트</strong> → 헤드 쪽으로 무게 집중 (헤드 헤비)</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-gray-400">•</span>
+                        <span class="text-gray-700 text-sm sm:text-base"><strong>낮은 밸런스 포인트</strong> → 그립 쪽으로 무게 집중 (핸들 헤비)</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-gray-400">•</span>
+                        <span class="text-gray-700 text-sm sm:text-base">일반적인 피클볼 패들의 밸런스 포인트는 23~25cm 범위입니다.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 이전 단위 저장
+        let prevRevWeightUnit = 'oz';
+        let prevRevLengthUnit = 'in';
+
+        // 무게 단위 변환
+        function convertRevWeight() {
+            const weightInput = document.getElementById('rev-weight');
+            const weightUnit = document.getElementById('rev-weight-unit').value;
+            const currentValue = parseFloat(weightInput.value);
+
+            if (!isNaN(currentValue) && currentValue > 0) {
+                let newValue;
+                if (prevRevWeightUnit === 'oz' && weightUnit === 'g') {
+                    newValue = currentValue * 28.3495;
+                } else if (prevRevWeightUnit === 'g' && weightUnit === 'oz') {
+                    newValue = currentValue / 28.3495;
+                } else {
+                    newValue = currentValue;
+                }
+                weightInput.value = newValue.toFixed(2);
+            }
+            prevRevWeightUnit = weightUnit;
+        }
+
+        // 길이 단위 변환
+        function convertRevLength() {
+            const lengthInput = document.getElementById('rev-length');
+            const lengthUnit = document.getElementById('rev-length-unit').value;
+            const currentValue = parseFloat(lengthInput.value);
+
+            if (!isNaN(currentValue) && currentValue > 0) {
+                let newValue;
+                if (prevRevLengthUnit === 'in' && lengthUnit === 'cm') {
+                    newValue = currentValue * 2.54;
+                } else if (prevRevLengthUnit === 'cm' && lengthUnit === 'in') {
+                    newValue = currentValue / 2.54;
+                } else {
+                    newValue = currentValue;
+                }
+                lengthInput.value = newValue.toFixed(2);
+            }
+            prevRevLengthUnit = lengthUnit;
+        }
+
+        // 밸런스 포인트 역계산
+        // SW = m * (balance - pivot)^2 + (m * L^2) / shapeFactor
+        // balance = sqrt((SW - (m * L^2) / shapeFactor) / m) + pivot
+        function calculateReverseBalance() {
+            const weightInput = parseFloat(document.getElementById('rev-weight').value);
+            const lengthInput = parseFloat(document.getElementById('rev-length').value);
+            const swInput = parseFloat(document.getElementById('rev-sw').value);
+
+            const weightUnit = document.getElementById('rev-weight-unit').value;
+            const lengthUnit = document.getElementById('rev-length-unit').value;
+
+            if (isNaN(weightInput) || isNaN(lengthInput) || isNaN(swInput)) {
+                alert("모든 값을 정확히 입력해주세요.");
+                return;
+            }
+
+            // 단위 변환
+            let weightG;
+            if (weightUnit === 'oz') {
+                weightG = weightInput * 28.3495;
+            } else {
+                weightG = weightInput;
+            }
+
+            let lengthCm;
+            if (lengthUnit === 'in') {
+                lengthCm = lengthInput * 2.54;
+            } else {
+                lengthCm = lengthInput;
+            }
+
+            const weightKg = weightG / 1000;
+            const PIVOT_OFFSET = 10;
+            const SHAPE_FACTOR = 5.5;
+
+            // 역계산: balance = sqrt((SW - inertiaTerm) / m) + pivot
+            const inertiaTerm = (weightKg * Math.pow(lengthCm, 2)) / SHAPE_FACTOR;
+            const rotationalPart = swInput - inertiaTerm;
+
+            if (rotationalPart < 0) {
+                alert("입력값이 물리적으로 불가능합니다. 스윙 웨이트가 너무 낮거나 다른 값을 확인해주세요.");
+                return;
+            }
+
+            const balanceCm = Math.sqrt(rotationalPart / weightKg) + PIVOT_OFFSET;
+
+            // 결과 유효성 검사
+            if (balanceCm < 0 || balanceCm > lengthCm) {
+                alert("계산된 밸런스 포인트가 패들 범위를 벗어납니다. 입력값을 확인해주세요.");
+                return;
+            }
+
+            // 결과 표시
+            document.getElementById('rev-result').classList.remove('hidden');
+            document.getElementById('rev-empty').classList.add('hidden');
+
+            document.getElementById('rev-balance-value').textContent = balanceCm.toFixed(2);
+
+            // 시각적 표시 업데이트
+            const balancePercent = (balanceCm / lengthCm) * 100;
+            document.getElementById('rev-balance-bar').style.width = balancePercent + '%';
+            document.getElementById('rev-balance-marker').style.left = balancePercent + '%';
+            document.getElementById('rev-length-label').textContent = '헤드 (' + lengthCm.toFixed(1) + 'cm)';
+
+            // 입력값 요약
+            document.getElementById('rev-summary-weight').textContent = weightG.toFixed(1) + 'g';
+            document.getElementById('rev-summary-length').textContent = lengthCm.toFixed(1) + 'cm';
+            document.getElementById('rev-summary-sw').textContent = swInput.toFixed(1);
+        }
+    </script>
+</body>
+</html>
